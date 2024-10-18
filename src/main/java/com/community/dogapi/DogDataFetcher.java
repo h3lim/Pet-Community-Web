@@ -4,8 +4,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.XML;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
+// import org.w3c.dom.Element;
+// import org.w3c.dom.NodeList;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -46,61 +46,85 @@ public class DogDataFetcher {
         rd.close();
         conn.disconnect();
 
-
         // XML 파싱
         ArrayList<HashMap<String, String>> list = new ArrayList<>();
         try {
             JSONObject jsonObject = XML.toJSONObject(sb.toString()); // 주어진 XML을 JSONObject로 변환
 
-//            JSONObject jsonObject = XML.toJSONObject(xmlString);
-            System.out.println(jsonObject.toString());
+            JSONObject response = jsonObject.getJSONObject("response"); // 최상위 요소인 "response"를 가져옴
+            JSONObject body = response.getJSONObject("body"); // "body"를 가져옴
+            JSONObject items = body.getJSONObject("items"); // "items"를 가져옴
 
-//
-            JSONObject response  = jsonObject.getJSONObject("response"); // 최상위 요소인 "response"를 가져옴
-            JSONObject body      = response.getJSONObject("body"); // "body"를 가져옴
-            JSONObject items     = body.getJSONObject("items"); // "items"를 가져옴
-            JSONArray itemArray  = items.getJSONArray("item"); // "items" 안에 있는 "item"들을 배열로 가져옴
+            // "item" 키가 존재하는지 확인
+            if (items.has("item")) {
+                Object itemObj = items.get("item");
 
-            for (int i = 0; i < itemArray.length(); i++) {
-                JSONObject item = itemArray.getJSONObject(i);
-                HashMap<String, String> map = new HashMap<>();
-                map.put("desertionNo", String.valueOf(item.getLong("desertionNo")));
-                map.put("filename", item.getString("filename"));
-                map.put("happenDt", String.valueOf(item.getInt("happenDt")));
-                map.put("happenPlace", item.getString("happenPlace"));
-                map.put("kindCd", item.getString("kindCd"));
-                map.put("colorCd", item.getString("colorCd"));
-                map.put("age", item.getString("age"));
-                map.put("weight", item.getString("weight"));
-                map.put("noticeNo", item.getString("noticeNo"));
-                map.put("noticeSdt", String.valueOf(item.getInt("noticeSdt")));
-                map.put("noticeEdt", String.valueOf(item.getInt("noticeEdt")));
-                map.put("popfile", item.getString("popfile"));
-                map.put("processState", item.getString("processState"));
-                map.put("sexCd", item.getString("sexCd"));
-                map.put("neuterYn", item.getString("neuterYn"));
-                map.put("specialMark", item.getString("specialMark"));
-                map.put("careNm", item.getString("careNm"));
-                map.put("careTel", item.getString("careTel"));
-                map.put("careAddr", item.getString("careAddr"));
-                map.put("orgNm", item.getString("orgNm"));
-                map.put("chargeNm", item.getString("chargeNm"));
-                map.put("officetel", item.getString("officetel"));
-                list.add(map);
+                if (itemObj instanceof JSONArray) {
+                    JSONArray itemArray = (JSONArray) itemObj; // "item"들을 배열로 가져옴
+
+                    for (int i = 0; i < itemArray.length(); i++) {
+                        JSONObject item = itemArray.getJSONObject(i);
+                        HashMap<String, String> map = new HashMap<>();
+                        map.put("desertionNo", String.valueOf(item.getLong("desertionNo")));
+                        map.put("filename", item.getString("filename"));
+                        map.put("happenDt", String.valueOf(item.getInt("happenDt")));
+                        map.put("happenPlace", item.getString("happenPlace"));
+                        map.put("kindCd", item.getString("kindCd"));
+                        map.put("colorCd", item.getString("colorCd"));
+                        map.put("age", item.getString("age"));
+                        map.put("weight", item.getString("weight"));
+                        map.put("noticeNo", item.getString("noticeNo"));
+                        map.put("noticeSdt", String.valueOf(item.getInt("noticeSdt")));
+                        map.put("noticeEdt", String.valueOf(item.getInt("noticeEdt")));
+                        map.put("popfile", item.getString("popfile"));
+                        map.put("processState", item.getString("processState"));
+                        map.put("sexCd", item.getString("sexCd"));
+                        map.put("neuterYn", item.getString("neuterYn"));
+                        map.put("specialMark", item.getString("specialMark"));
+                        map.put("careNm", item.getString("careNm"));
+                        map.put("careTel", item.getString("careTel"));
+                        map.put("careAddr", item.getString("careAddr"));
+                        map.put("orgNm", item.getString("orgNm"));
+                        map.put("chargeNm", item.getString("chargeNm"));
+                        map.put("officetel", item.getString("officetel"));
+                        list.add(map);
+                    }
+                } else if (itemObj instanceof JSONObject) {
+                    JSONObject item = (JSONObject) itemObj;
+                    HashMap<String, String> map = new HashMap<>();
+                    map.put("desertionNo", String.valueOf(item.getLong("desertionNo")));
+                    map.put("filename", item.getString("filename"));
+                    map.put("happenDt", String.valueOf(item.getInt("happenDt")));
+                    map.put("happenPlace", item.getString("happenPlace"));
+                    map.put("kindCd", item.getString("kindCd"));
+                    map.put("colorCd", item.getString("colorCd"));
+                    map.put("age", item.getString("age"));
+                    map.put("weight", item.getString("weight"));
+                    map.put("noticeNo", item.getString("noticeNo"));
+                    map.put("noticeSdt", String.valueOf(item.getInt("noticeSdt")));
+                    map.put("noticeEdt", String.valueOf(item.getInt("noticeEdt")));
+                    map.put("popfile", item.getString("popfile"));
+                    map.put("processState", item.getString("processState"));
+                    map.put("sexCd", item.getString("sexCd"));
+                    map.put("neuterYn", item.getString("neuterYn"));
+                    map.put("specialMark", item.getString("specialMark"));
+                    map.put("careNm", item.getString("careNm"));
+                    map.put("careTel", item.getString("careTel"));
+                    map.put("careAddr", item.getString("careAddr"));
+                    map.put("orgNm", item.getString("orgNm"));
+                    map.put("chargeNm", item.getString("chargeNm"));
+                    map.put("officetel", item.getString("officetel"));
+                    list.add(map);
+                }
+            } else {
+                // "item" 키가 없을 경우, 조회 결과가 없음
+                System.out.println("조회 결과가 없습니다.");
             }
-            //System.out.println(list);
+
         } catch (JSONException e) {
             e.printStackTrace();
         }
 
         return list;
     }
-
-
-
-//    public static void main(String[] args) throws Exception {
-//        DogDataFetcher dd = new DogDataFetcher();
-//        ArrayList<HashMap<String, String>> list = dd.fetchData( "20240501", "20240601");
-//        System.out.println(list.size());
-//    }
 }
