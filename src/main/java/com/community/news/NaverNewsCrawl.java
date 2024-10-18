@@ -26,7 +26,9 @@ public class NaverNewsCrawl {
 			String ref = li.select("div.news_info > div.info_group > a.info.press ").text();
 			String detail = li.select("li > div > div > div.news_contents > div > div > a").text();
 			String regdate = li.select("div.news_wrap.api_ani_send > div > div.news_info > div.info_group > span").text();
-			
+			if (img == null || img.isEmpty()) {
+				img = "assets/img/logo/logo.jpg";
+			}
 			NewsVO nvo = new NewsVO();
 			nvo.setHref(href);
 			nvo.setImg(img);
