@@ -4,8 +4,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.XML;
-// import org.w3c.dom.Element;
-// import org.w3c.dom.NodeList;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -15,18 +13,39 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class DogDataFetcher {
+
+    private static final String SERVICE_KEY = "OB8zOGGA8DZ14ANXcPMlZsCphr1KZg8aa4FPrn9NtyB%2Bx%2BWpxZdh1DDM79htVufnJ%2FYg6KgKkVS%2BvqnUXIsyXw%3D%3D";
+    private static final String BASE_API_URL = "http://apis.data.go.kr/1543061/abandonmentPublicSrvc/abandonmentPublic";
+    private static final int MAX_RETRIES = 3;  // Max retry attempts
+    private static final int RETRY_DELAY_MS = 2000;  // Delay between retries in milliseconds
+
     public ArrayList<HashMap<String, String>> fetchData(String bgnde, String endde) throws Exception {
-        // 인증키
-        String serviceKey = "OB8zOGGA8DZ14ANXcPMlZsCphr1KZg8aa4FPrn9NtyB%2Bx%2BWpxZdh1DDM79htVufnJ%2FYg6KgKkVS%2BvqnUXIsyXw%3D%3D";
+        int attempt = 0;
+        boolean success = false;
+        ArrayList<HashMap<String, String>> list = new ArrayList<>();
 
-        // API 호출을 위한 URL 생성
-        String apiURL = "http://apis.data.go.kr/1543061/abandonmentPublicSrvc/abandonmentPublic"
-                + "?serviceKey=" + serviceKey
-                + "&bgnde=" + bgnde
-                + "&endde=" + endde
-                + "&_type=xml"; // JSON 대신 XML 요청
+        while (attempt < MAX_RETRIES && !success) {
+            try {
+                list = fetchDataFromAPI(bgnde, endde);
+                success = true;
+            } catch (Exception e) {
+                attempt++;
+                System.out.println("Attempt " + attempt + " failed: " + e.getMessage());
 
-        // API 요청 및 응답 데이터 수신
+                if (attempt < MAX_RETRIES) {
+                    Thread.sleep(RETRY_DELAY_MS);
+                } else {
+                    System.out.println("Max retries reached. Unable to fetch data from the API.");
+                    throw e;  // Throw exception if max retries are reached
+                }
+            }
+        }
+        return list;
+    }
+
+    private ArrayList<HashMap<String, String>> fetchDataFromAPI(String bgnde, String endde) throws Exception {
+        String apiURL = BASE_API_URL + "?serviceKey=" + SERVICE_KEY + "&bgnde=" + bgnde + "&endde=" + endde + "&_type=xml";
+
         URL url = new URL(apiURL);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("GET");
@@ -46,85 +65,66 @@ public class DogDataFetcher {
         rd.close();
         conn.disconnect();
 
-        // XML 파싱
+        return parseXMLData(sb.toString());
+    }
+
+    private ArrayList<HashMap<String, String>> parseXMLData(String xmlData) {
         ArrayList<HashMap<String, String>> list = new ArrayList<>();
+
         try {
-            JSONObject jsonObject = XML.toJSONObject(sb.toString()); // 주어진 XML을 JSONObject로 변환
+            JSONObject jsonObject = XML.toJSONObject(xmlData);
+            JSONObject response = jsonObject.getJSONObject("response");
+            JSONObject body = response.getJSONObject("body");
+            JSONObject items = body.getJSONObject("items");
 
-            JSONObject response = jsonObject.getJSONObject("response"); // 최상위 요소인 "response"를 가져옴
-            JSONObject body = response.getJSONObject("body"); // "body"를 가져옴
-            JSONObject items = body.getJSONObject("items"); // "items"를 가져옴
-
-            // "item" 키가 존재하는지 확인
             if (items.has("item")) {
                 Object itemObj = items.get("item");
 
                 if (itemObj instanceof JSONArray) {
-                    JSONArray itemArray = (JSONArray) itemObj; // "item"들을 배열로 가져옴
+                    JSONArray itemArray = (JSONArray) itemObj;
 
                     for (int i = 0; i < itemArray.length(); i++) {
                         JSONObject item = itemArray.getJSONObject(i);
-                        HashMap<String, String> map = new HashMap<>();
-                        map.put("desertionNo", String.valueOf(item.getLong("desertionNo")));
-                        map.put("filename", item.getString("filename"));
-                        map.put("happenDt", String.valueOf(item.getInt("happenDt")));
-                        map.put("happenPlace", item.getString("happenPlace"));
-                        map.put("kindCd", item.getString("kindCd"));
-                        map.put("colorCd", item.getString("colorCd"));
-                        map.put("age", item.getString("age"));
-                        map.put("weight", item.getString("weight"));
-                        map.put("noticeNo", item.getString("noticeNo"));
-                        map.put("noticeSdt", String.valueOf(item.getInt("noticeSdt")));
-                        map.put("noticeEdt", String.valueOf(item.getInt("noticeEdt")));
-                        map.put("popfile", item.getString("popfile"));
-                        map.put("processState", item.getString("processState"));
-                        map.put("sexCd", item.getString("sexCd"));
-                        map.put("neuterYn", item.getString("neuterYn"));
-                        map.put("specialMark", item.getString("specialMark"));
-                        map.put("careNm", item.getString("careNm"));
-                        map.put("careTel", item.getString("careTel"));
-                        map.put("careAddr", item.getString("careAddr"));
-                        map.put("orgNm", item.getString("orgNm"));
-                        map.put("chargeNm", item.getString("chargeNm"));
-                        map.put("officetel", item.getString("officetel"));
-                        list.add(map);
+                        list.add(convertItemToMap(item));
                     }
                 } else if (itemObj instanceof JSONObject) {
                     JSONObject item = (JSONObject) itemObj;
-                    HashMap<String, String> map = new HashMap<>();
-                    map.put("desertionNo", String.valueOf(item.getLong("desertionNo")));
-                    map.put("filename", item.getString("filename"));
-                    map.put("happenDt", String.valueOf(item.getInt("happenDt")));
-                    map.put("happenPlace", item.getString("happenPlace"));
-                    map.put("kindCd", item.getString("kindCd"));
-                    map.put("colorCd", item.getString("colorCd"));
-                    map.put("age", item.getString("age"));
-                    map.put("weight", item.getString("weight"));
-                    map.put("noticeNo", item.getString("noticeNo"));
-                    map.put("noticeSdt", String.valueOf(item.getInt("noticeSdt")));
-                    map.put("noticeEdt", String.valueOf(item.getInt("noticeEdt")));
-                    map.put("popfile", item.getString("popfile"));
-                    map.put("processState", item.getString("processState"));
-                    map.put("sexCd", item.getString("sexCd"));
-                    map.put("neuterYn", item.getString("neuterYn"));
-                    map.put("specialMark", item.getString("specialMark"));
-                    map.put("careNm", item.getString("careNm"));
-                    map.put("careTel", item.getString("careTel"));
-                    map.put("careAddr", item.getString("careAddr"));
-                    map.put("orgNm", item.getString("orgNm"));
-                    map.put("chargeNm", item.getString("chargeNm"));
-                    map.put("officetel", item.getString("officetel"));
-                    list.add(map);
+                    list.add(convertItemToMap(item));
                 }
             } else {
-                // "item" 키가 없을 경우, 조회 결과가 없음
                 System.out.println("조회 결과가 없습니다.");
             }
 
         } catch (JSONException e) {
             e.printStackTrace();
         }
-
         return list;
+    }
+
+    private HashMap<String, String> convertItemToMap(JSONObject item) {
+        HashMap<String, String> map = new HashMap<>();
+        map.put("desertionNo", String.valueOf(item.getLong("desertionNo")));
+        map.put("filename", item.getString("filename"));
+        map.put("happenDt", String.valueOf(item.getInt("happenDt")));
+        map.put("happenPlace", item.getString("happenPlace"));
+        map.put("kindCd", item.getString("kindCd"));
+        map.put("colorCd", item.getString("colorCd"));
+        map.put("age", item.getString("age"));
+        map.put("weight", item.getString("weight"));
+        map.put("noticeNo", item.getString("noticeNo"));
+        map.put("noticeSdt", String.valueOf(item.getInt("noticeSdt")));
+        map.put("noticeEdt", String.valueOf(item.getInt("noticeEdt")));
+        map.put("popfile", item.getString("popfile"));
+        map.put("processState", item.getString("processState"));
+        map.put("sexCd", item.getString("sexCd"));
+        map.put("neuterYn", item.getString("neuterYn"));
+        map.put("specialMark", item.getString("specialMark"));
+        map.put("careNm", item.getString("careNm"));
+        map.put("careTel", item.getString("careTel"));
+        map.put("careAddr", item.getString("careAddr"));
+        map.put("orgNm", item.getString("orgNm"));
+        map.put("chargeNm", item.getString("chargeNm"));
+        map.put("officetel", item.getString("officetel"));
+        return map;
     }
 }
