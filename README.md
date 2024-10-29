@@ -27,35 +27,62 @@ Doggiverse 프로젝트는 반려견 커뮤니티 플랫폼으로, 사용자들�
 ## 프로젝트 구조
 
 ```bash
-Doggiverse/
-├── src/
-│   ├── com/
-│   │   ├── community/
-│   │   │   ├── board/             # 게시판 관련 서블릿 및 유틸리티
-│   │   │   ├── dogapi/            # 유기견 API 데이터 처리
-│   │   │   ├── news/              # 뉴스 크롤링 서블릿
-│   │   │   └── user/              # 사용자 관리 서블릿 및 유틸리티
-│   ├── DBUtil.java                # 데이터베이스 연결 유틸리티
-├── WebContent/
-│   ├── assets/                    # CSS, JS, 이미지 파일
-│   ├── board_list.jsp             # 게시판 목록 페이지
-│   ├── board_detail.jsp           # 게시판 상세 페이지
-│   ├── board_write.jsp            # 게시글 작성 페이지
-│   ├── board_mod.jsp              # 게시글 수정 페이지
-│   ├── login.jsp                  # 로그인 페이지
-│   ├── signup.jsp                 # 회원가입 페이지
-│   ├── index.jsp                  # 메인 페이지
-│   ├── header.jsp                 # 공통 헤더
-│   ├── footer.jsp                 # 공통 푸터
-│   ├── News.jsp                   # 뉴스 페이지
-│   ├── dog.jsp                    # 유기견 정보 페이지
-│   ├── recommend.jsp              # 애견 동반 장소 지도
-│   ├── viewAccount.jsp            # 사용자 계정 페이지
-│   ├── changePassword.jsp         # 비밀번호 변경 페이지
-│   └── ...                        # 기타 JSP 파일
-├── pom.xml                        # Maven 설정 파일
-└── README.md                      # 프로젝트 설명서
+community
+├── board                 # 게시판 관련 파일
+│   ├── BoardDAO.java       # 게시판 데이터 접근 객체 (DAO)로 데이터베이스와 통신하여 게시물 데이터를 처리
+│   ├── BoardVO.java        # 게시물 정보를 저장하는 Value Object (VO) 클래스
+│   └── CallTest.java       # 특정 게시물의 상세 정보를 조회하는 테스트 클래스
 
+├── common                # 공통 기능 모듈
+│   ├── LoginAuthFilter.java  # 로그인 권한을 확인하는 필터. 특정 경로에 접근하려면 로그인 필요
+│   ├── PageCreator.java      # 페이징 처리를 위한 클래스
+│   └── PageVO.java           # 페이징 정보 (현재 페이지, 페이지당 표시할 게시물 수) 저장하는 VO 클래스
+
+├── controller            # 컨트롤러
+│   └── BoardController.java  # 게시판 관련 요청을 처리하는 서블릿 컨트롤러. URL 패턴을 기반으로 각 서비스 호출
+
+├── dogapi                # API 연동
+│   └── DogDataFetcher.java   # 유기견 공공 데이터를 API로부터 받아오는 클래스
+
+├── model                 # 모델
+│   └── User.java            # 사용자 정보 저장을 위한 User 클래스 (모델 클래스)
+
+├── news                  # 뉴스 크롤링 관련
+│   ├── CrawlServlet.java    # Naver 뉴스 데이터를 크롤링하는 서블릿
+│   ├── NaverNewsCrawl.java  # Naver에서 뉴스 데이터를 크롤링하는 클래스
+│   └── NewsVO.java          # 뉴스 데이터 저장을 위한 VO 클래스
+
+├── reply                 # 댓글 관련 파일
+│   ├── DelReplyServlet.java # 댓글 삭제 처리 서블릿
+│   ├── ReplyCallTest.java   # 댓글 관련 기능 테스트 클래스
+│   ├── ReplyDAO.java        # 댓글 데이터 접근 객체, DB와 통신하여 댓글 CRUD 작업 수행
+│   ├── ReplyVO.java         # 댓글 정보를 저장하는 VO 클래스
+│   └── WriteReplyServlet.java # 댓글 작성 처리 서블릿
+
+├── service               # 서비스 레이어 (비즈니스 로직)
+│   ├── ContentService.java   # 게시물 상세 조회를 처리하는 서비스
+│   ├── DeleteService.java    # 게시물 삭제를 처리하는 서비스
+│   ├── GetListService.java   # 게시물 목록 조회를 처리하는 서비스
+│   ├── IBoardService.java    # 서비스 인터페이스, 모든 게시판 서비스는 이 인터페이스를 구현
+│   ├── ModifyService.java    # 게시물 수정 페이지 이동 및 데이터 전달 서비스
+│   ├── RegistService.java    # 게시물 등록 처리 서비스
+│   ├── SearchService.java    # 게시물 검색 처리 서비스
+│   └── UpdateService.java    # 게시물 수정 처리 서비스
+
+├── servlet               # 공통 서블릿
+│   ├── CheckNicknameServlet.java  # 닉네임 중복 확인 서블릿
+│   ├── CheckUsernameServlet.java  # 사용자 이름 중복 확인 서블릿
+│   ├── CommunityServlet.java      # 커뮤니티 서블릿, 커뮤니티 인덱스 페이지를 위한 서블릿
+│   ├── MyOracleConnection.java    # Oracle 데이터베이스 연결 설정 클래스
+│   ├── SignUpServlet.java         # 회원가입 처리 서블릿
+
+├── users                 # 사용자 관련 파일
+│   ├── UserDAO.java          # 사용자 데이터 접근 객체, DB와 통신하여 사용자 CRUD 작업 수행
+│   ├── UserServlet.java       # 사용자 관련 기능을 처리하는 서블릿
+│   └── UserVO.java            # 사용자 정보를 저장하는 VO 클래스
+
+└── util                 # 유틸리티 클래스
+    └── DBUtil.java         # 데이터베이스 연결을 위한 유틸리티 클래스
 ```
 
 
