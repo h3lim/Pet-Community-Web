@@ -15,6 +15,7 @@ Doggiverse 프로젝트는 반려견 커뮤니티 플랫폼으로, 사용자들�
   - [백엔드](#백엔드)
   - [프론트엔드](#프론트엔드)
   - [API](#api)
+  - [데이터베이스](#데이터베이스)
   - [서버](#서버)
   - 
   - [빌드 도구](#빌드-도구)
@@ -125,22 +126,21 @@ community
 ### 백엔드
 
 - **Java Servlet 및 JSP**
-- **JDBC**를 통한 Oracle 데이터베이스 연동
-- **JSoup** (웹 크롤링)
-- **Gson** (JSON 파싱)
+- **JDBC**
+- **JSoup** 
+- **Gson** 
 
 ### 프론트엔드
 
 - **HTML5**, **CSS3**, **JavaScript**
 - **Bootstrap 4**
 - **jQuery**
-- **JSTL**을 통한 서버사이드 렌더링
-
+- **JSTL**
 ### API
 
 - **구글 맵 JavaScript API**
 - **다음 우편번호 API**
-- **한국 정부 공공 API** (유기견 정보)
+- **한국 정부 공공 API**
 
 ### 서버
 
@@ -148,7 +148,7 @@ community
   
 ### 데이터베이스
 
-- **Oracle Database** (사용자, 게시글, 댓글 및 유기견 정보를 저장)
+- **Oracle Database** 
 
 ### 빌드 도구
 
